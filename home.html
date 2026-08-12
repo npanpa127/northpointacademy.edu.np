@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>North Point Academy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="icon" type="image" href="logo.jpg">
+    <style>
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .hero-slider {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('school.jpeg');
+            background-size: cover;
+            background-position: center;
+            transition: all 0.8s ease;
+        }
+        /* Fixed height for 10 rows (~65px per row + header) */
+        .table-container-fixed {
+            max-height: 700px; 
+            overflow-y: auto;
+        }
+        #slider-title, #slider-desc { transition: opacity 0.5s ease-in-out;         }
+        #slider-title{
+            font-size: 33pt;
+        }
+     
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div id="noticeModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/80 backdrop-blur-md px-4">
+    <div class="bg-white rounded-3xl overflow-hidden max-w-lg w-full shadow-2xl transform transition-all scale-95 opacity-0 duration-300" id="noticeContent">
+        
+        <div class="bg-blue-600 p-4 flex justify-between items-center text-white">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-bell animate-bounce"></i>
+                <span class="font-bold uppercase tracking-wider text-sm">Important Notice</span>
+            </div>
+            <button onclick="closeNotice()" class="hover:bg-blue-700 w-8 h-8 rounded-full transition flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <div class="p-8 text-center">
+            <div class="mb-6">
+                <h3 class="text-2xl font-extrabold text-slate-900 mb-2">Academic Year 2083</h3>
+                
+                <p class="text-slate-500 font-medium italic">North Point Academy</p>
+            </div>
+            
+            <div class="bg-slate-50 border-l-4 border-blue-600 p-4 mb-6 text-left">
+                <p class="text-slate-700 leading-relaxed">
+                  Visit the school office between 10:00 AM and 4:00 PM to secure your seat.
+                    Contact : 
+
+
+                </p>
+                        <div class="flex gap-4 mt-6">
+    <a href="tel:9748842998" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-semibold transition shadow-md active:scale-95">
+        <i class="fa-solid fa-phone"></i> Call Now
+    </a>
+    
+    <a href="mailto:npabuddhabatika16@gmail.com" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-full font-semibold transition shadow-md active:scale-95">
+        <i class="fa-solid fa-envelope"></i> Email Us
+    </a>
+</div>
+
+            </div>
+
+            <button onclick="closeNotice()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-black transition shadow-lg">
+                Understood
+            </button>
+        </div>
+    </div>
+</div>
+
+
+    <nav class="bg-white/90 backdrop-blur-md shadow-sm fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    <img src="logo.jpg" width="50" class="rounded-full shadow-sm">
+                    <span class="text-xl md:text-2xl font-bold tracking-tighter text-slate-900">North Point Academy</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+<div id="navBirthdayCount" 
+     onclick="window.location.href='#birthdaySection'" 
+     style="cursor: pointer;" 
+     class="hidden items-center gap-2 bg-rose-50 text-rose-600 px-3 py-1 rounded-full text-xs font-bold border border-rose-100 animate-pulse hover:bg-rose-100 transition-colors">
+    <!-- Birthday Count will be injected here by JS -->
+</div>
+                    <div class="flex space-x-6 font-medium">
+                        <a href="#" class="hover:text-blue-600 transition"><i class="fa-solid fa-house mr-1"></i> Home</a>
+                              <a href="#staff" class="hover:text-blue-600 transition"> <i class="fa-solid fa-person-military-to-person"></i> Staff</a>
+     
+                        <a href="#about" class="hover:text-blue-600 transition"><i class="fa-solid fa-circle-info mr-1"></i> About</a>
+                        <a href="#contact" class="hover:text-blue-600 transition"><i class="fa-solid fa-envelope mr-1"></i> Contact</a>
+                    </div>
+<div class="calendar-card" style="padding: 20px; background: #fff; border-radius: 15px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+    <span style="color: #64748b; font-size: 11px; font-weight: 800; tracking-spacing: 1px; uppercase;">North Point Academy</span>
+    <!-- Date Display -->
+    <div id="todayBS" style="font-size: 22px; font-weight: 800; color: #1e293b; margin-top: 5px;"></div>
+    <!-- Time Display -->
+    <div id="timeBS" style="font-size: 16px; font-weight: 500; color: #3b82f6; margin-top: 2px;"></div>
+</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-slider h-screen flex items-center justify-center text-center text-white">
+        <div class="px-4 max-w-4xl">
+            <h1 id="slider-title" class="text-5xl md:text-7xl font-extrabold mb-6">Welcome to</h1>
+            <p id="slider-desc" class="text-xl md:text-2xl mb-10 text-slate-300">Our School</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="https://system.eacademynepal.com" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30">
+                    Member Login <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+
+
+
+
+<section class="p-6 bg-gray-50 rounded-xl shadow-inner mt-10">
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+        <i class="fa-solid fa-chart-line text-blue-600"></i> School Overview
+    </h2>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Total Students -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-blue-500 hover:shadow-md transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Students</p>
+                    <h3 class="text-3xl font-bold text-slate-800 mt-1">480</h3>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-lg text-blue-600">
+                    <i class="fa-solid fa-user-graduate fa-2x"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Teachers -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500 hover:shadow-md transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Teachers</p>
+                    <h3 class="text-3xl font-bold text-slate-800 mt-1">27</h3>
+                </div>
+                <div class="bg-emerald-100 p-3 rounded-lg text-emerald-600">
+                    <i class="fa-solid fa-chalkboard-user fa-2x"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Staff -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500 hover:shadow-md transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Staff</p>
+                    <h3 class="text-3xl font-bold text-slate-800 mt-1">36</h3>
+                </div>
+                <div class="bg-amber-100 p-3 rounded-lg text-amber-600">
+                    <i class="fa-solid fa-users-gear fa-2x"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Count -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-purple-500 hover:shadow-md transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Classes</p>
+                    <h3 class="text-3xl font-bold text-slate-800 mt-1">23</h3>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-lg text-purple-600">
+                    <i class="fa-solid fa-screen-users fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+</section>
+
+<section id="birthdaySection" class="hidden mb-10">
+    <div class="bg-gradient-to-r from-blue-500 to-rose-500 rounded-3xl p-2 shadow-xl shadow-rose-200 text-white">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+                <i class="fa-solid fa-cake-candles fa-xl"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold">Today's Birthdays!</h2>
+                <!-- Changed to "School Family" to include Staff -->
+                <p class="text-rose-100 text-sm">Celebrating our school family on their special day</p>
+            </div>
+        </div>
+
+        <div id="birthdayList" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Cards (Students & Staff) will appear here -->
+        </div>
+             <br><br>
+              <a href="birthday.html" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30">
+                    Birthday Card <i class="fa-solid fa-arrow-right"></i>
+                </a>
+     
+    </div>
+</section>
+
+<!-- Main Section with Trigger Button -->
+ <main class="py-24 bg-white">
+       
+        <!-- Filter Card -->
+          <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold mb-4">Students</h2>
+            <div class="h-1 w-20 bg-blue-600 mx-auto"></div>
+        </div>
+        <section class="bg-white p-6 rounded-3xl shadow-sm mb-6 border border-slate-200">
+            <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-layer-group text-blue-600"></i> Select Grade
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Class Dropdown -->
+                <div class="relative">
+                    <label class="text-[10px] uppercase font-bold text-slate-400 absolute left-4 top-2 z-10">Class</label>
+                    <select id="classSelect" onchange="updateSections()" class="w-full pt-6 pb-2 px-4 rounded-2xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 appearance-none font-semibold text-slate-700">
+                    </select>
+                </div>
+
+                <!-- Section Dropdown -->
+                <div class="relative">
+                    <label class="text-[10px] uppercase font-bold text-slate-400 absolute left-4 top-2 z-10">Section</label>
+                    <select id="sectionSelect" onchange="filterStudents()" class="w-full pt-6 pb-2 px-4 rounded-2xl border border-slate-200 bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500 appearance-none font-semibold text-slate-700">
+                    </select>
+                </div>
+
+                <div class="flex items-center justify-center bg-blue-50 rounded-2xl border border-blue-100 px-4 py-2">
+                    <span id="countBadge" class="text-blue-700 font-bold text-sm">0 Students Found</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Table -->
+        <div class="bg-white rounded-3xl shadow-sm overflow-hidden max-w-6x1 border border-slate-200">
+            <div style="max-height: 640px; overflow-y: auto; border: 2px solid #e2e8f0" class="rounded-xl shadow-sm overflow-hidden">
+                <table class="max-w-6x1 text-left border-collapse bg-white">
+                    <thead class="bg-slate-900 text-white sticky top-0 z-10">
+                        <tr>
+                            <th colspan="5"><div class="bg-slate-800 text-white" id="classTeacherName"></div></th>
+                        </tr>
+                        <tr>
+                            <th class="px-6 py-4 text-xs font-bold uppercase">Student Name</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase text-center">Class</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase text-center">Section</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase">Date of Birth</th>
+                                     <th class="px-6 py-4 text-xs font-bold uppercase text-center">Location</th>
+
+                        </tr>
+                    </thead>
+                    <tbody id="studentBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+
+<section class="py-24 bg-white" id="staff">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold mb-4">Staffs</h2>
+            <div class="h-1 w-20 bg-blue-600 mx-auto"></div>
+        </div>
+
+        <div style="max-height: 640px; overflow-y: auto; border: 2px solid #e2e8f0" class="rounded-xl shadow-sm overflow-hidden">
+            <table class="w-full text-left border-collapse bg-white">
+                <thead class="bg-slate-900 text-white sticky top-0 z-10">
+                    <tr>
+                        <th class="px-6 py-5 font-semibold">Staff Name</th>
+                        <th class="px-6 py-5 font-semibold">Position</th>
+                        <th class="px-6 py-5 font-semibold">Contact</th>
+                        <th class="px-6 py-5 font-semibold text-center">Action</th>
+                    </tr>
+                </thead>
+                <!-- THIS ID IS THE KEY -->
+                <tbody id="staffBody">
+                    <!-- JavaScript will fill this -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+    <section id="about" class="py-24 bg-white">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">About Our Academy</h2>
+                <div class="h-1 w-20 bg-blue-600 mx-auto"></div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-16 items-center">
+                <div class="relative">
+                    <img src="school.jpeg" alt="School Campus" class="rounded-lg border-2 border-blue-400 shadow-xl">
+                    <div class="absolute -bottom-6 -right-6 bg-blue-600 text-white p-6 rounded-xl hidden lg:block shadow-lg">
+                        <i class="fa-solid fa-graduation-cap text-3xl"></i>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <h3 class="text-2xl font-semibold text-slate-800">Inspiring Excellence, Shaping Futures</h3>
+                    <p class="text-slate-600 leading-relaxed text-lg">
+                        North Point Academy is dedicated to providing quality education in a nurturing environment. We focus on holistic development, combining academic rigor with character building to prepare students for the challenges of the future.
+                    </p>
+                  
+                  <div class="grid grid-cols-2 gap-4">
+    <div class="flex items-start gap-3 p-4 border border-slate-100 rounded-xl hover:shadow-md transition">
+        <i class="fa-solid fa-bus text-blue-500 mt-1"></i>
+        <div>
+            <h4 class="font-bold text-slate-800">Bus</h4>
+            <p class="text-sm text-slate-500">Safe transportation service</p>
+        </div>
+    </div>
+    
+    <div class="flex items-start gap-3 p-4 border border-slate-100 rounded-xl hover:shadow-md transition">
+        <i class="fa-solid fa-laptop text-blue-500 mt-1"></i>
+        <div>
+            <h4 class="font-bold text-slate-800">Computer Lab</h4>
+            <p class="text-sm text-slate-500">Digital literacy & skills</p>
+        </div>
+    </div>
+</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<section class="py-24 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-4">Message from the Desk</h2>
+            <div class="h-1 w-20 bg-blue-600 mx-auto"></div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-12">
+            
+            <div class="bg-white rounded-3xl p-8 shadow-xl border border-slate-100 flex flex-col items-center text-center">
+                <div class="relative mb-6">
+                    <div class="w-48 h-48 rounded-2xl overflow-hidden border-4 border-blue-50 shadow-lg">
+                        <img src="chairman.jpeg" 
+                             alt="Chairman" class="w-full h-full object-cover">
+                    </div>
+                    <div class="absolute -bottom-3 -right-3 bg-slate-900 text-white p-3 rounded-xl shadow-lg">
+                        <i class="fa-solid fa-crown text-sm"></i>
+                    </div>
+                </div>
+                
+                <h3 class="text-2xl font-bold text-slate-900 mb-1">Mr. Yam Pratap Thapa</h3>
+                <p class="text-blue-600 font-semibold mb-4 tracking-wide uppercase text-xs">Chairman</p>
+                
+                <p class="text-slate-600 leading-relaxed italic mb-8">
+                    "Our vision for North Point Academy is to provide an environment where every child feels valued and inspired to achieve their full potential. We are committed to building a brighter future together."
+                </p>
+
+                <div class="flex gap-3 w-full mt-auto">
+                    <a href="tel:+977" class="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition active:scale-95 text-sm">
+                        <i class="fa-solid fa-phone"></i> Call
+                    </a>
+                    <a href="mailto:npabuddhabatika16@gmail.com" class="flex-1 flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-bold transition active:scale-95 text-sm">
+                        <i class="fa-solid fa-envelope"></i> Email
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl p-8 shadow-xl border border-slate-100 flex flex-col items-center text-center">
+                <div class="relative mb-6">
+                    <div class="w-48 h-48 rounded-2xl overflow-hidden border-4 border-blue-50 shadow-lg">
+                        <img src="https://eacademy.sgp1.digitaloceanspaces.com/eacademy/14/dVz39oG0w2cEoarkncidz6gYjzYeY4dQ26efLB7T.png" 
+                             alt="Principal" class="w-full h-full object-cover">
+                    </div>
+                    <div class="absolute -bottom-3 -right-3 bg-blue-600 text-white p-3 rounded-xl shadow-lg">
+                        <i class="fa-solid fa-graduation-cap text-sm"></i>
+                    </div>
+                </div>
+                
+                <h3 class="text-2xl font-bold text-slate-900 mb-1">Mr. Hari Prasad Belbase</h3>
+                <p class="text-blue-600 font-semibold mb-4 tracking-wide uppercase text-xs">Principal</p>
+                
+                <p class="text-slate-600 leading-relaxed italic mb-8">
+                    "At North Point Academy, excellence is our motto. We focus on holistic development, ensuring that our students grow both academically and socially in a safe, supportive atmosphere."
+                </p>
+
+                <div class="flex gap-3 w-full mt-auto">
+                    <a href="tel:+9779847193297" class="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition active:scale-95 text-sm">
+                        <i class="fa-solid fa-phone"></i> Call
+                    </a>
+                    <a href="mailto:npabuddhabatika16@gmail.com" class="flex-1 flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-bold transition active:scale-95 text-sm">
+                        <i class="fa-solid fa-envelope"></i> Email
+                    </a>
+                </div>
+            </div>
+
+                <div class="bg-white rounded-3xl p-8 shadow-xl border border-slate-100 flex flex-col items-center text-center">
+                <div class="relative mb-6">
+                    <div class="w-48 h-48 rounded-2xl overflow-hidden border-4 border-blue-50 shadow-lg">
+                        <img src="https://eacademy.sgp1.digitaloceanspaces.com/eacademy/14/1t8WNa28nfwsGLiUatSwyjvX0kQZdhrCw9vAmNiH.png" 
+                             alt="Chairman" class="w-full h-full object-cover">
+                    </div>
+                    <div class="absolute -bottom-3 -right-3 bg-slate-900 text-white p-3 rounded-xl shadow-lg">
+                      <i class="fa-solid fa-computer"></i>
+                    </div>
+                </div>
+                
+                <h3 class="text-2xl font-bold text-slate-900 mb-1">Mr. Bijay Subba</h3>
+                <p class="text-blue-600 font-semibold mb-4 tracking-wide uppercase text-xs">Administrator</p>
+                
+                <p class="text-slate-600 leading-relaxed italic mb-8">
+                   "We believe that a strong foundation begins with a supportive community; here, we bridge the gap between academic excellence and the personal wellbeing of every student."
+                </p>
+
+                <div class="flex gap-3 w-full mt-auto">
+                    <a href="tel:+9779767007216" class="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition active:scale-95 text-sm">
+                        <i class="fa-solid fa-phone"></i> Call
+                    </a>
+                    <a href="mailto:npabuddhabatika16@gmail.com" class="flex-1 flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-bold transition active:scale-95 text-sm">
+                        <i class="fa-solid fa-envelope"></i> Email
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+    <section id="contact" class="py-24 bg-slate-100">
+        <div class="max-w-4xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-paper-plane text-blue-600"></i> Contact Admission Office
+            </h2>
+            <form class="bg-white p-8 md:p-12 rounded-3xl shadow-xl space-y-6">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-4 top-4 text-slate-400"></i>
+                        <input type="text" placeholder="Full Name" class="w-full pl-12 pr-4 py-4 rounded-xl border border-slate-200 focus:border-blue-500 outline-none transition bg-slate-50">
+                    </div>
+                    <div class="relative">
+                        <i class="fa-solid fa-at absolute left-4 top-4 text-slate-400"></i>
+                        <input type="email" placeholder="Email Address" class="w-full pl-12 pr-4 py-4 rounded-xl border border-slate-200 focus:border-blue-500 outline-none transition bg-slate-50">
+                    </div>
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-comment-dots absolute left-4 top-4 text-slate-400"></i>
+                    <textarea rows="4" placeholder="Your Inquiry" class="w-full pl-12 pr-4 py-4 rounded-xl border border-slate-200 focus:border-blue-500 outline-none transition bg-slate-50"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 shadow-lg transition-all active:scale-95">
+                    Send Inquiry
+                </button>
+            </form>
+          <br> <p style="text-align:center; width: 100%;">-------- OR --------</p>   <br>
+    
+    <div class="flex flex-wrap gap-4 mt-6">
+    <a href="tel:9748842998" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-semibold transition shadow-md active:scale-95">
+        <i class="fa-solid fa-phone"></i> Call Now
+    </a>
+    
+    <a href="mailto:npabuddhabatika16@gmail.com" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-full font-semibold transition shadow-md active:scale-95">
+        <i class="fa-solid fa-envelope"></i> Email Us
+    </a>
+
+    <a href="https://facebook.com/northpointacadmy" target="_blank" class="flex items-center gap-2 bg-[#1877F2] hover:opacity-90 text-white px-6 py-2 rounded-full font-semibold transition shadow-md active:scale-95">
+        <i class="fa-brands fa-facebook"></i> Facebook
+    </a>
+
+    <a href="https://www.tiktok.com/@north.point.acade?is_from_webapp=1&sender_device=pc" target="_blank" class="flex items-center gap-2 bg-black hover:bg-zinc-900 text-white px-6 py-2 rounded-full font-semibold transition shadow-md active:scale-95">
+        <i class="fa-brands fa-tiktok"></i> TikTok
+    </a>
+
+    <a href="https://youtube.com/@northpointacademy.2054" target="_blank" class="flex items-center gap-2 bg-[#FF0000] hover:opacity-90 text-white px-6 py-2 rounded-full font-semibold transition shadow-md active:scale-95">
+        <i class="fa-brands fa-youtube"></i> YouTube
+    </a>
+</div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-900 text-slate-400 pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+            <div>
+                <div class="flex items-center gap-2 mb-6 text-white">
+                   
+                    <span class="text-xl font-bold">Bijay Khanal</span>
+                </div>
+                <p class="text-sm leading-relaxed">
+                    Excellence in education and character development at Buddhabhumi-1, Pattharkot, Kapilvastu. Empowering students for a better tomorrow.
+                </p>
+                <div class="flex gap-4 mt-6">
+                    <a href="#" class="hover:text-white transition"><i class="fa-brands fa-facebook text-xl"></i></a>
+                    <a href="#" class="hover:text-white transition"><i class="fa-brands fa-youtube text-xl"></i></a>
+                    <a href="#" class="hover:text-white transition"><i class="fa-brands fa-instagram text-xl"></i></a>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-6">Quick Links</h4>
+                <ul class="space-y-3 text-sm">
+                    <li><a href="#" class="hover:text-blue-400 transition"><i class="fa-solid fa-chevron-right text-[10px] mr-2"></i> Home</a></li>
+                    <li><a href="#about" class="hover:text-blue-400 transition"><i class="fa-solid fa-chevron-right text-[10px] mr-2"></i> About Us</a></li>
+                    <li><a href="#contact" class="hover:text-blue-400 transition"><i class="fa-solid fa-chevron-right text-[10px] mr-2"></i> Admission Inquiry</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-6">System Portal</h4>
+                <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                    <p class="text-xs space-y-2">
+                        <span class="block mb-2"><i class="fa-solid fa-code text-blue-400 mr-2"></i> Designed with: Tailwind CSS</span>
+                        <span class="block mb-2"><i class="fa-brands fa-js text-yellow-400 mr-2"></i> Powered by: Vanilla JS</span>
+                        <span class="block"><i class="fa-solid fa-school text-green-400 mr-2"></i> E-Academy Nepal Integrated</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-slate-800 pt-8 text-center text-xs">
+            <p>&copy; 2026 bjayk.99 | All Rights Reserved</p>
+        </div>
+    </footer>
+
+ 
+
+<script src="student.js"></script>
+<script src="twotosix.js"></script>
+<script src="main.js"></script>
+<!-- ORDER MATTERS HERE -->
+<script src="staffData.js"></script>
+
+<!-- Add this before your other scripts -->
+<script src="date.js"></script>
+
+</body>
+</html>

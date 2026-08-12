@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NPA Birthday Portal</title>
+    <link rel="icon" type="image" href="logo.jpg">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Cropper.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
+        
+        .card-main { 
+            width: 600px; height: 600px; position: relative; 
+            overflow: hidden; border-radius: 3.5rem; margin: auto;
+            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.4);
+            -webkit-print-color-adjust: exact;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .student-bg { 
+            background-color: #6366f1;
+            background-image: 
+                radial-gradient(rgba(255, 255, 255, 0.2) 15%, transparent 16%),
+                radial-gradient(rgba(255, 255, 255, 0.2) 15%, transparent 16%),
+                linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            background-size: 40px 40px, 40px 40px, 100% 100%;
+            background-position: 0 0, 20px 20px, 0 0;
+            border: 12px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .staff-bg { 
+            background-color: #0f172a;
+            background-image: 
+                linear-gradient(rgba(251, 191, 36, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(251, 191, 36, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            border: 12px solid #fbbf24;
+        }
+
+        /* Draggable & Resizable items styling */
+        .draggable-item {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            touch-action: none;
+            transition: border 0.2s;
+            resize: both;
+            overflow: hidden;
+            min-width: 50px;
+            min-height: 30px;
+        }
+        .draggable-item.dragging {
+            opacity: 0.85;
+            z-index: 1000 !important;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            border: 2px dashed rgba(251, 191, 36, 0.8);
+        }
+        
+        /* Hide resize handles on capture/download */
+        .capturing .draggable-item {
+            resize: none !important;
+        }
+        .capturing .draggable-item::-webkit-resizer {
+            display: none !important;
+        }
+
+        .draggable-item::-webkit-resizer {
+            background-color: rgba(251, 191, 36, 0.8);
+            border-radius: 4px;
+        }
+
+        .hexagon-container {
+            width: 290px; height: 290px;
+            z-index: 10;
+        }
+        
+        .hexagon-svg {
+            width: 100%; height: 100%;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
+            cursor: move;
+        }
+
+        .portal-logo-box, .portal-cake-box {
+            z-index: 20; display: flex; align-items: center; justify-content: center;
+        }
+
+        .happy-text-group { z-index: 5; color: white; font-size: 58px; font-weight: 900; line-height: 0.8; width: 450px; }
+        .script-font { font-family: 'Great Vibes', cursive; color: #fbbf24; font-size: 72px; display: block; margin-top: 5px; }
+        .name-label { font-size: 42px; font-weight: 900; color: #fbbf24; line-height: 1.1; text-shadow: 2px 2px 15px rgba(0,0,0,0.5); width: 100%; }
+        .info-box { z-index: 5; color: white; width: 500px; }
+        
+        .wish-bubble-container {
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(15px);
+            border-radius: 25px; padding: 15px 25px; text-align: center; color: white; 
+            border: 1px solid rgba(255,255,255,0.3); width: 550px; height: 80px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .wish-text {
+            background: transparent; border: none; color: white; width: 100%; height: 100%;
+            text-align: center; resize: none; outline: none; font-size: 18px; line-height: 1.2;
+            cursor: move;
+        }
+        
+        .date-stamp { color: rgba(255,255,255,0.8); font-size: 15px; font-weight: 800; letter-spacing: 0.5px; z-index: 5; width: 400px; }
+        #lockScreen { position: fixed; inset: 0; z-index: 5000; background: #020617; display: flex; align-items: center; justify-content: center; }
+        .hidden-portal { display: none !important; }
+
+        .editable-text {
+            outline: none;
+            pointer-events: auto;
+        }
+        .editable-text:hover {
+            outline: 1px dashed rgba(251, 191, 36, 0.8);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+        }
+        .editable-text.editing {
+            outline: 2px solid #fbbf24;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            padding: 2px 6px;
+            cursor: text;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Lock Screen -->
+    <div id="lockScreen">
+        <div class="bg-white p-12 rounded-[3.5rem] shadow-2xl max-w-sm w-full text-center">
+            <h2 class="text-3xl font-black mb-2">NPA Portal</h2>
+            <p class="text-sm text-slate-500 mb-8">PIN enter here</p>
+            <input type="text" id="pinInput" placeholder="0000" maxlength="4" class="w-full text-center text-5xl font-mono border-b-4 border-slate-100 outline-none focus:border-indigo-500 pb-4 mb-10">
+            <button onclick="unlock()" class="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black shadow-xl hover:bg-indigo-700 transition uppercase">Enter Portal</button>
+        </div>
+    </div>
+
+    <!-- Portal -->
+    <div id="mainPortal" class="hidden-portal">
+        <nav class="bg-white/80 backdrop-blur-xl sticky top-0 z-[100] border-b h-24 flex items-center px-10 gap-6">
+            <button onclick="history.back()" 
+                    class="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-100 text-slate-800 text-xl font-black hover:bg-indigo-600 hover:text-white transition-all active:scale-90 border border-slate-200 shadow-sm">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+
+            <h1 class="text-2xl font-black uppercase tracking-tight">
+                NPA <span class="text-indigo-600">Birthday</span>
+            </h1>
+
+            <div id="liveClock" class="ml-auto font-mono font-black text-indigo-600 bg-indigo-50 px-6 py-3 rounded-2xl border border-indigo-100 shadow-inner">
+            </div>
+        </nav>
+
+        <div class="max-w-7xl mx-auto py-10 px-6">
+            <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border mb-12 grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Search Type</label>
+                    <select id="dateMode" onchange="toggleDateInput()" class="w-full border-2 p-4 rounded-2xl font-bold bg-slate-50 border-slate-100 outline-none focus:border-indigo-500">
+                        <option value="today">Today's Birthdays</option>
+                        <option value="custom">Custom Date Search</option>
+                    </select>
+                </div>
+                <div id="customDateContainer" class="hidden">
+                    <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">BS Date (YYYY-MM-DD)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="bsDateInput" placeholder="2083-01-20" class="flex-1 border-2 p-4 rounded-2xl font-bold border-indigo-50 outline-none">
+                        <button onclick="generateCards()" class="bg-indigo-600 text-white px-6 rounded-2xl font-black">FIND</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Footer Date Style</label>
+                    <select id="cardDateLabelMode" onchange="generateCards()" class="w-full border-2 p-4 rounded-2xl font-bold bg-slate-50 border-slate-100 outline-none">
+                        <option value="celebrate">Show Current/Celebrate Date</option>
+                        <option value="dob">Show DOB Date</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="addDummyCard()" class="flex-1 bg-amber-500 text-white py-4 rounded-2xl font-black hover:bg-amber-600 transition shadow-md flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Add Dummy
+                    </button>
+                    <button onclick="downloadAllCards()" id="downloadAllBtn" class="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-black hover:bg-emerald-700 transition shadow-md flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-download"></i> All
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-indigo-800 text-sm font-bold text-center mb-8">
+                <i class="fa-solid fa-info-circle mr-2"></i> Tip: **Single click & drag** any element anywhere. **Double-click** text fields to edit them or double-click the photo/logo to change images!
+            </div>
+
+            <div id="cardGrid" class="space-y-32"></div>
+        </div>
+    </div>
+
+    <!-- Modal Crop -->
+    <div id="cropModal" class="hidden-portal fixed inset-0 z-[6000] bg-black/90 flex items-center justify-center p-6">
+        <div class="bg-white p-8 rounded-[3rem] max-w-2xl w-full shadow-2xl">
+            <img id="cropTarget" src="" class="max-h-[50vh] mx-auto rounded-2xl">
+            <div class="flex gap-4 mt-8">
+                <button onclick="closeCrop()" class="flex-1 py-5 bg-slate-100 rounded-2xl font-black">CANCEL</button>
+                <button onclick="saveCrop()" class="flex-1 py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-lg">APPLY CROP</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="student.js"></script>
+    <script src="twotosix.js"></script>
+    <script src="staffData.js"></script>
+
+    <script>
+        const nepaliCalendarMap = {
+            2083: [31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30, 30],
+            2084: [31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30],
+            2085: [31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 30],
+            2086: [31, 32, 31, 32, 30, 31, 30, 30, 29, 30, 29, 30],
+            2087: [31, 31, 32, 32, 31, 30, 30, 30, 29, 30, 30, 30]
+        };
+
+        function unlock() {
+            const now = new Date();
+            const h = String(now.getHours() % 12 || 12).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const pin = h + m;
+            if(document.getElementById('pinInput').value === pin) {
+                document.getElementById('lockScreen').classList.add('hidden-portal');
+                document.getElementById('mainPortal').classList.remove('hidden-portal');
+                initPortal();
+            } else { alert("Incorrect PIN! Try again"); }
+        }
+        document.getElementById('pinInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') unlock();
+        });
+
+        function getTodayBS() {
+            const adNow = new Date();
+            const adAnchor = new Date("2026-04-14"); 
+            let diff = Math.floor((adNow - adAnchor) / (1000 * 60 * 60 * 24));
+            let y = 2083, mIdx = 0, d = 1;
+            while (diff > 0) {
+                let days = nepaliCalendarMap[y][mIdx];
+                if (diff >= days) { diff -= days; mIdx++; if (mIdx > 11) { mIdx = 0; y++; } }
+                else { d += diff; diff = 0; }
+            }
+            return `${y}-${String(mIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        }
+
+        function toggleDateInput() {
+            const mode = document.getElementById('dateMode').value;
+            document.getElementById('customDateContainer').classList.toggle('hidden', mode === 'today');
+            if(mode === 'today') {
+                document.getElementById('bsDateInput').value = getTodayBS();
+                generateCards();
+            }
+        }
+
+        function initPortal() {
+            document.getElementById('bsDateInput').value = getTodayBS();
+            setInterval(() => { document.getElementById('liveClock').innerText = new Date().toLocaleTimeString(); }, 1000);
+            generateCards();
+        }
+
+        function generateCards() {
+            const grid = document.getElementById('cardGrid');
+            const targetDate = document.getElementById('bsDateInput').value;
+            const labelMode = document.getElementById('cardDateLabelMode').value;
+            const mmdd = targetDate.split('-').slice(1).join('-');
+
+            grid.innerHTML = '';
+            let count = 0;
+
+            const process = (p, type, meta) => {
+                if(!p.dob) return;
+                const pMMDD = p.dob.replace(/\//g, '-').split('-').slice(1).join('-');
+                if(pMMDD === mmdd) {
+                    count++;
+                    const finalLabel = (labelMode === 'dob') ? p.dob : targetDate;
+                    renderCard(grid, p, type, meta, finalLabel);
+                }
+            };
+
+            if (typeof schoolData !== 'undefined') {
+                for(let cls in schoolData) {
+                    if(schoolData[cls].students) schoolData[cls].students.forEach(s => process(s, 'student', 'Class: '+cls));
+                }
+            }
+            if (typeof staffData !== 'undefined') staffData.forEach(s => process(s, 'staff', s.role));
+            if(count === 0) grid.innerHTML = `<div class="text-center py-40 opacity-20 text-2xl font-black">No Birthdays found for ${targetDate}</div>`;
+        }
+
+        function addDummyCard() {
+            const grid = document.getElementById('cardGrid');
+            const dummyData = {
+                name: "Dummy Student",
+                gender: "male",
+                dob: getTodayBS(),
+                image: ""
+            };
+            renderCard(grid, dummyData, 'student', 'Class: 1-Lotus', getTodayBS());
+        }
+
+        function renderCard(container, data, type, meta, dateLabel) {
+            const uid = Math.random().toString(36).substr(2, 5);
+            const isStaff = type === 'staff';
+            const frameColor = isStaff ? '#fbbf24' : '#ffffff';
+            const section = document.createElement('div');
+            section.className = "flex flex-col lg:flex-row gap-12 items-center bg-white p-12 rounded-[4rem] shadow-xl border border-slate-50";
+            
+            section.innerHTML = `
+                <div id="capture-${uid}" class="card-main ${isStaff ? 'staff-bg' : 'student-bg'}">
+                    <div class="draggable-item portal-logo-box" style="top: 25px; left: 35px; width:80px; height:80px;" data-drag>
+                        <img src="logo.jpg" style="width:100%; height:100%; border-radius:50%; border:3px solid white;" ondblclick="triggerFileInput('${uid}')" title="Double-click to change logo">
+                    </div>
+
+                    <div id="hex-container-${uid}" class="draggable-item hexagon-container" style="top: 70px; right: 15px; width:290px; height:290px;" data-drag>
+                        <svg id="hex-svg-${uid}" class="hexagon-svg" viewBox="0 0 100 100" ondblclick="triggerFileInput('${uid}')" title="Double-click to change photo" style="border: 0px solid #ffffff; box-sizing: border-box;">
+                            <defs>
+                                <clipPath id="hexClip-${uid}">
+                                    <path d="M25 5 L75 5 L100 50 L75 95 L25 95 L0 50 Z" />
+                                </clipPath>
+                            </defs>
+                            <path d="M25 5 L75 5 L100 50 L75 95 L25 95 L0 50 Z" fill="${frameColor}" />
+                            <image id="img-${uid}" x="3" y="3" width="94" height="94" 
+                                clip-path="url(#hexClip-${uid})" preserveAspectRatio="xMidYMid slice" 
+                                href="${data.image || 'https://ui-avatars.com/api/?background=fff&color=6366f1&bold=true&name='+data.name}" />
+                        </svg>
+                    </div>
+
+                    <div id="happy-group-${uid}" class="draggable-item happy-text-group" style="top: 175px; left: 45px;" data-drag>
+                        <p id="happy-text-${uid}" class="editable-text" style="font-size: 58px;" ondblclick="makeEditable(this)">Happy <span id="script-text-${uid}" class="script-font editable-text" style="font-size: 72px;" ondblclick="makeEditable(this)">Birthday</span></p>
+                    </div>
+                    
+                    <div id="info-group-${uid}" class="draggable-item info-box" style="bottom: 145px; left: 45px;" data-drag>
+                        <div id="name-label-${uid}" class="name-label editable-text" style="font-size: 42px;" ondblclick="makeEditable(this)">${data.gender === 'female' ? 'Miss' : 'Mr'}. ${data.name}</div>
+                        <div id="meta-label-${uid}" class="text-xl font-bold opacity-80 mt-1 uppercase editable-text" style="font-size: 20px;" ondblclick="makeEditable(this)">${meta}</div>
+                    </div>
+                    
+                    <div class="draggable-item wish-bubble-container" style="bottom: 65px; left: 25px;" data-drag>
+                        <textarea id="wish-text-${uid}" class="wish-text" style="font-size: 18px;" ondblclick="enableTextarea(this)">Happy Birthday</textarea>
+                    </div>
+                    
+                    <div class="draggable-item date-stamp" style="bottom: 20px; left: 35px;" data-drag>
+                        <span id="footer-text-${uid}" class="editable-text" style="font-size: 15px;" ondblclick="makeEditable(this)">North Point Academy || ${dateLabel}</span>
+                    </div>
+                </div>
+                
+                <div class="flex-1 w-full space-y-6">
+                    <div class="bg-slate-50 p-8 rounded-[2.5rem] space-y-4">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Change Card Photo</label>
+                            <input type="file" id="file-${uid}" accept="image/*" onchange="startCrop(event, 'img-${uid}')" class="text-sm block w-full file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:bg-indigo-50 file:text-indigo-700">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Photo Border Color</label>
+                                <input type="color" value="#ffffff" oninput="updatePhotoBorderColor('${uid}', this.value)" class="w-full h-10 rounded-xl cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Photo Border Width (px)</label>
+                                <input type="number" value="0" min="0" max="20" oninput="updatePhotoBorderWidth('${uid}', this.value)" class="w-full border-2 p-2 rounded-xl font-bold">
+                            </div>
+                        </div>
+                        <hr class="border-slate-200">
+                        <!-- Text Font Size Controls -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Happy Font Size (px)</label>
+                                <input type="number" value="58" min="20" max="100" oninput="updateTextSize('${uid}', 'happy', this.value)" class="w-full border-2 p-2 rounded-xl font-bold">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Birthday Script Size (px)</label>
+                                <input type="number" value="72" min="20" max="120" oninput="updateTextSize('${uid}', 'script', this.value)" class="w-full border-2 p-2 rounded-xl font-bold">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Name Size (px)</label>
+                                <input type="number" value="42" min="15" max="80" oninput="updateTextSize('${uid}', 'name', this.value)" class="w-full border-2 p-2 rounded-xl font-bold">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Wish Text Size (px)</label>
+                                <input type="number" value="18" min="10" max="40" oninput="updateTextSize('${uid}', 'wish', this.value)" class="w-full border-2 p-2 rounded-xl font-bold">
+                            </div>
+                        </div>
+                        <hr class="border-slate-200">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Change / Crop Background Image</label>
+                            <input type="file" accept="image/*" onchange="startBgCrop(event, 'capture-${uid}')" class="text-sm block w-full file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Card Border Color</label>
+                                <input type="color" value="#ffffff" oninput="updateCardBorderColor('${uid}', this.value)" class="w-full h-10 rounded-xl cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Card Border Width (px)</label>
+                                <input type="number" value="12" min="0" max="40" oninput="updateCardBorderWidth('${uid}', this.value)" class="w-full border-2 p-2 rounded-xl font-bold">
+                            </div>
+                        </div>
+                        <div>
+                            <button onclick="addSquareShape('${uid}')" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 transition">
+                                <i class="fa-solid fa-square mr-2"></i> Add Square Shape Box
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <button onclick="downloadCard('capture-${uid}', '${data.name}')" class="flex-1 bg-slate-900 text-white py-6 rounded-[2rem] font-black hover:bg-black transition-all flex items-center justify-center gap-3 text-lg">
+                            <i class="fa-solid fa-download"></i> DOWNLOAD
+                        </button>
+                        <button onclick="deleteCard(this)" class="bg-rose-500 text-white px-6 rounded-[2rem] font-black hover:bg-rose-600 transition flex items-center justify-center" title="Delete Card">
+                            <i class="fa-solid fa-trash-can text-xl"></i>
+                        </button>
+                    </div>
+                </div>`;
+            container.appendChild(section);
+            initDragAndDrop(section.querySelector(`#capture-${uid}`));
+        }
+
+        function triggerFileInput(uid) {
+            document.getElementById(`file-${uid}`).click();
+        }
+
+        function makeEditable(el) {
+            el.setAttribute('contenteditable', 'true');
+            el.classList.add('editing');
+            el.focus();
+            el.onblur = function() {
+                el.removeAttribute('contenteditable');
+                el.classList.remove('editing');
+            };
+        }
+
+        function enableTextarea(el) {
+            el.removeAttribute('readonly');
+            el.style.background = 'rgba(0, 0, 0, 0.3)';
+            el.focus();
+            el.onblur = function() {
+                el.style.background = 'transparent';
+            };
+        }
+
+        function updateCardBorderColor(uid, color) {
+            const card = document.getElementById(`capture-${uid}`);
+            card.style.borderColor = color;
+        }
+
+        function updateCardBorderWidth(uid, width) {
+            const card = document.getElementById(`capture-${uid}`);
+            card.style.borderWidth = width + 'px';
+            card.style.borderStyle = 'solid';
+        }
+
+        function updatePhotoBorderColor(uid, color) {
+            const svg = document.getElementById(`hex-svg-${uid}`);
+            const currentWidth = svg.style.borderWidth || '0px';
+            svg.style.border = `${currentWidth} solid ${color}`;
+            svg.style.borderRadius = '50%';
+        }
+
+        function updatePhotoBorderWidth(uid, width) {
+            const svg = document.getElementById(`hex-svg-${uid}`);
+            const currentColor = svg.style.borderColor || '#ffffff';
+            svg.style.border = `${width}px solid ${currentColor}`;
+            svg.style.borderRadius = '50%';
+        }
+
+        function updateTextSize(uid, type, size) {
+            if(type === 'happy') {
+                document.getElementById(`happy-text-${uid}`).style.fontSize = size + 'px';
+            } else if(type === 'script') {
+                document.getElementById(`script-text-${uid}`).style.fontSize = size + 'px';
+            } else if(type === 'name') {
+                document.getElementById(`name-label-${uid}`).style.fontSize = size + 'px';
+            } else if(type === 'wish') {
+                document.getElementById(`wish-text-${uid}`).style.fontSize = size + 'px';
+            }
+        }
+
+        function addSquareShape(uid) {
+            const card = document.getElementById(`capture-${uid}`);
+            const shape = document.createElement('div');
+            shape.className = 'draggable-item';
+            shape.style.cssText = 'top: 200px; left: 200px; width: 120px; height: 120px; background: rgba(255, 255, 255, 0.2); border: 3px solid #ffffff; z-index: 2; border-radius: 15px;';
+            shape.setAttribute('data-drag', '');
+            
+            card.appendChild(shape);
+            initDragAndDrop(card);
+        }
+
+        function deleteCard(btn) {
+            const section = btn.closest('.bg-white.p-12');
+            if(section) section.remove();
+        }
+
+        let isBgCrop = false;
+        let targetCardBgId = '';
+
+        function startBgCrop(e, cardId) {
+            const file = e.target.files[0];
+            if(!file) return;
+            isBgCrop = true;
+            targetCardBgId = cardId;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('cropTarget').src = ev.target.result;
+                document.getElementById('cropModal').classList.remove('hidden-portal');
+                if(cropper) cropper.destroy();
+                cropper = new Cropper(document.getElementById('cropTarget'), { aspectRatio: 1, viewMode: 1 });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Global Drag & Drop Handler supporting single-click grab
+        function initDragAndDrop(cardMain) {
+            const items = cardMain.querySelectorAll('[data-drag]');
+            items.forEach(item => {
+                let isDragging = false;
+                let startX, startY, initialLeft, initialTop;
+
+                item.addEventListener('mousedown', (e) => {
+                    if (e.target.isContentEditable || e.target.classList.contains('editing')) return;
+                    startDrag(e.clientX, e.clientY);
+                    e.preventDefault();
+                });
+
+                item.addEventListener('touchstart', (e) => {
+                    if (e.target.isContentEditable || e.target.classList.contains('editing')) return;
+                    if (e.touches.length === 1) {
+                        startDrag(e.touches[0].clientX, e.touches[0].clientY);
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+
+                function startDrag(clientX, clientY) {
+                    isDragging = true;
+                    item.classList.add('dragging');
+                    startX = clientX;
+                    startY = clientY;
+                    initialLeft = item.offsetLeft;
+                    initialTop = item.offsetTop;
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                    document.addEventListener('touchmove', onTouchMove, { passive: false });
+                    document.addEventListener('touchend', onTouchEnd);
+                }
+
+                function onMouseMove(e) {
+                    if (!isDragging) return;
+                    moveAt(e.clientX, e.clientY);
+                }
+
+                function onTouchMove(e) {
+                    if (!isDragging || e.touches.length !== 1) return;
+                    moveAt(e.touches[0].clientX, e.touches[0].clientY);
+                    e.preventDefault();
+                }
+
+                function moveAt(clientX, clientY) {
+                    const dx = clientX - startX;
+                    const dy = clientY - startY;
+                    item.style.left = (initialLeft + dx) + 'px';
+                    item.style.top = (initialTop + dy) + 'px';
+                    item.style.bottom = 'auto';
+                    item.style.right = 'auto';
+                }
+
+                function onMouseUp() {
+                    stopDrag();
+                }
+
+                function onTouchEnd() {
+                    stopDrag();
+                }
+
+                function stopDrag() {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    item.classList.remove('dragging');
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                    document.removeEventListener('touchmove', onTouchMove);
+                    document.removeEventListener('touchend', onTouchEnd);
+                }
+            });
+        }
+
+        let cropper; let activeImgId;
+        function startCrop(e, id) {
+            const file = e.target.files[0]; if(!file) return;
+            isBgCrop = false;
+            activeImgId = id;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('cropTarget').src = ev.target.result;
+                document.getElementById('cropModal').classList.remove('hidden-portal');
+                if(cropper) cropper.destroy();
+                cropper = new Cropper(document.getElementById('cropTarget'), { aspectRatio: 1, viewMode: 1 });
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function saveCrop() {
+            const croppedData = cropper.getCroppedCanvas().toDataURL('image/png');
+            if (isBgCrop) {
+                const card = document.getElementById(targetCardBgId);
+                card.style.backgroundImage = `url('${croppedData}')`;
+                card.style.backgroundColor = 'transparent';
+            } else {
+                document.getElementById(activeImgId).setAttribute('href', croppedData);
+            }
+            closeCrop();
+        }
+        
+        function closeCrop() { document.getElementById('cropModal').classList.add('hidden-portal'); }
+
+        async function downloadCard(id, name) {
+            const element = document.getElementById(id);
+            const btn = event.currentTarget;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GENERATING...';
+            
+            try {
+                element.classList.add('capturing');
+                const imgs = element.querySelectorAll('img');
+                await Promise.all(Array.from(imgs).map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+                }));
+
+                const canvas = await html2canvas(element, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: null,
+                    logging: false,
+                    width: 600,
+                    height: 600
+                });
+                
+                element.classList.remove('capturing');
+
+                const link = document.createElement('a');
+                link.download = `${name.replace(/\s+/g, '_')}_Birthday.png`;
+                link.href = canvas.toDataURL("image/png", 1.0);
+                link.click();
+            } catch (err) {
+                console.error(err);
+                element.classList.remove('capturing');
+                alert("Download failed. Please try Chrome on Desktop if possible.");
+            } finally {
+                btn.innerHTML = originalHTML;
+            }
+        }
+
+        async function downloadAllCards() {
+            const cardElements = document.querySelectorAll('.card-main');
+            if (cardElements.length === 0) {
+                alert("No cards available to download!");
+                return;
+            }
+
+            const btn = document.getElementById('downloadAllBtn');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> DOWNLOADING...';
+
+            for (let i = 0; i < cardElements.length; i++) {
+                const element = cardElements[i];
+                const nameLabel = element.querySelector('.name-label');
+                const studentName = nameLabel ? nameLabel.innerText.replace(/^(Mr\.|Miss\.)\s*/, '') : `Student_${i+1}`;
+
+                try {
+                    element.classList.add('capturing');
+                    const imgs = element.querySelectorAll('img');
+                    await Promise.all(Array.from(imgs).map(img => {
+                        if (img.complete) return Promise.resolve();
+                        return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+                    }));
+
+                    const canvas = await html2canvas(element, {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: null,
+                        logging: false,
+                        width: 600,
+                        height: 600
+                    });
+
+                    element.classList.remove('capturing');
+
+                    const link = document.createElement('a');
+                    link.download = `${studentName.replace(/\s+/g, '_')}_Birthday.png`;
+                    link.href = canvas.toDataURL("image/png", 1.0);
+                    link.click();
+
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                } catch (err) {
+                    console.error(`Failed to download card for ${studentName}`, err);
+                    element.classList.remove('capturing');
+                }
+            }
+
+            btn.innerHTML = originalHTML;
+        }
+    </script>
+</body>
+</html>
