@@ -158,7 +158,7 @@ const staffData = [
         phone: "+977 9848028673",
         gender: "male",
         image: "https://eacademy.sgp1.digitaloceanspaces.com/eacademy/14/ZBSwaK0AWln5EGStRWtDTupqyV4apTKHK3xxgjDx.png",
-        dob: "2060-04-27"
+        dob: "2060-03-31"
     },
     {
         name: "Prativa Khadka",
