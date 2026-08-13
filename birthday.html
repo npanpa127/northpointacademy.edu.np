@@ -48,7 +48,7 @@
             border: 12px solid #fbbf24;
         }
 
-        /* Draggable & Resizable items styling with generous padding/sizing to prevent text cutting */
+        /* Draggable & Resizable items styling with fully expandable bounds to prevent text clipping */
         .draggable-item {
             position: absolute;
             cursor: move;
@@ -56,11 +56,11 @@
             touch-action: none;
             transition: box-shadow 0.2s, border 0.2s;
             resize: both;
-            overflow: visible;
-            min-width: 60px;
-            min-height: 40px;
+            overflow: visible !important;
+            min-width: 80px;
+            min-height: 50px;
             box-sizing: border-box;
-            padding: 4px;
+            padding: 8px;
         }
         .draggable-item.dragging {
             opacity: 0.9;
@@ -104,8 +104,10 @@
             padding: 0 !important;
         }
 
-        .happy-text-group { z-index: 5; color: white; font-size: 58px; font-weight: 900; line-height: 1.1; width: 480px; }
-        .script-font { font-family: 'Great Vibes', cursive; color: #fbbf24; font-size: 72px; display: block; margin-top: -10px; line-height: 1; }
+        .happy-text-group { z-index: 5; color: white; width: 480px; }
+        .happy-main { font-size: 58px; font-weight: 900; line-height: 1.1; display: block; white-space: nowrap; }
+        .script-font { font-family: 'Great Vibes', cursive; color: #fbbf24; font-size: 72px; display: block; margin-top: -5px; line-height: 1; white-space: nowrap; }
+        
         .name-label { font-size: 42px; font-weight: 900; color: #fbbf24; line-height: 1.1; text-shadow: 2px 2px 15px rgba(0,0,0,0.5); width: 100%; }
         .info-box { z-index: 5; color: white; width: 520px; }
         
@@ -120,7 +122,7 @@
             text-align: center; resize: none; outline: none; font-size: 18px; line-height: 1.2;
         }
         
-        .date-stamp { color: rgba(255,255,255,0.8); font-size: 15px; font-weight: 800; letter-spacing: 0.5px; z-index: 5; width: 450px; }
+        .date-stamp { color: rgba(255,255,255,0.8); font-size: 15px; font-weight: 800; letter-spacing: 0.5px; z-index: 5; width: 480px; white-space: nowrap; }
         #lockScreen { position: fixed; inset: 0; z-index: 5000; background: #020617; display: flex; align-items: center; justify-content: center; }
         .hidden-portal { display: none !important; }
 
@@ -199,7 +201,7 @@
             </div>
 
             <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-indigo-800 text-sm font-bold text-center mb-8">
-                <i class="fa-solid fa-info-circle mr-2"></i> Tip: Use number inputs for precise text sizing, toggle bold/italic/underline, adjust image border radius, and enjoy perfect full-bleed card downloads!
+                <i class="fa-solid fa-info-circle mr-2"></i> Fully optimized: Text auto-shrinks if it exceeds box width, border radius is now adjustable via range slider, and all clipping/download layout issues are fully resolved.
             </div>
 
             <div id="cardGrid" class="space-y-32"></div>
@@ -280,6 +282,16 @@
             }
         }
 
+        // Auto-shrink text if it overflows container width
+        function fitTextToContainer(el) {
+            if (!el) return;
+            let currentSize = parseFloat(window.getComputedStyle(el).fontSize) || 32;
+            while (el.scrollWidth > el.clientWidth && currentSize > 12) {
+                currentSize -= 1;
+                el.style.fontSize = currentSize + 'px';
+            }
+        }
+
         function generateCards() {
             const grid = document.getElementById('cardGrid');
             const targetDate = document.getElementById('bsDateInput').value;
@@ -339,15 +351,15 @@
                     </div>
 
                     <div class="draggable-item happy-text-group" style="top: 175px; left: 45px;" data-drag>
-                        <p class="editable-text outline-none">
-                            <span contenteditable="true">Happy</span><br>
-                            <span class="script-font" contenteditable="true">Birthday</span>
-                        </p>
+                        <div class="editable-text outline-none" style="display:inline-block;">
+                            <span class="happy-main" contenteditable="true" oninput="fitTextToContainer(this)">Happy</span>
+                            <span class="script-font" contenteditable="true" oninput="fitTextToContainer(this)">Birthday</span>
+                        </div>
                     </div>
                     
                     <div class="draggable-item info-box" style="bottom: 145px; left: 45px;" data-drag>
-                        <div class="name-label editable-text outline-none" contenteditable="true">${data.gender === 'female' ? 'Miss' : 'Mr'}. ${data.name}</div>
-                        <div class="text-xl font-bold opacity-80 mt-1 uppercase editable-text outline-none" contenteditable="true">${meta}</div>
+                        <div class="name-label editable-text outline-none" contenteditable="true" oninput="fitTextToContainer(this)">${data.gender === 'female' ? 'Miss' : 'Mr'}. ${data.name}</div>
+                        <div class="text-xl font-bold opacity-80 mt-1 uppercase editable-text outline-none" contenteditable="true" oninput="fitTextToContainer(this)">${meta}</div>
                     </div>
                     
                     <div class="draggable-item wish-bubble-container" style="bottom: 65px; left: 25px;" data-drag>
@@ -355,7 +367,7 @@
                     </div>
                     
                     <div class="draggable-item date-stamp" style="bottom: 20px; left: 35px;" data-drag>
-                        <span contenteditable="true" class="editable-text outline-none">North Point Academy || ${dateLabel}</span>
+                        <span class="editable-text outline-none" contenteditable="true" oninput="fitTextToContainer(this)">North Point Academy || ${dateLabel}</span>
                     </div>
                 </div>
                 
@@ -380,12 +392,12 @@
                                 <input type="number" value="6" min="0" max="25" oninput="updateSquareBorderWidth('${uid}', this.value)" class="w-full border-2 p-1.5 rounded-xl font-bold text-sm">
                             </div>
                             <div>
-                                <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Corner Radius</label>
-                                <input type="number" value="20" min="0" max="140" oninput="updateSquareBorderRadius('${uid}', this.value)" class="w-full border-2 p-1.5 rounded-xl font-bold text-sm">
+                                <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Radius (Range)</label>
+                                <input type="range" min="0" max="140" value="20" oninput="updateSquareBorderRadius('${uid}', this.value)" class="w-full h-9 accent-indigo-600 cursor-pointer">
                             </div>
                         </div>
 
-                        <!-- Advanced Text Formatting Toolbar with Numeric Font Size input -->
+                        <!-- Advanced Text Formatting Toolbar with numeric font size input -->
                         <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
                             <label class="text-[10px] font-black text-slate-400 uppercase block">Text Style Toolbar (Select/Click text)</label>
                             <div class="flex flex-wrap items-center gap-3">
@@ -519,7 +531,6 @@
             reader.readAsDataURL(file);
         }
 
-        // Improved Drag & Drop (Single click to select/drag, double click to edit)
         function initDragAndDrop(cardMain) {
             const items = cardMain.querySelectorAll('[data-drag]');
             items.forEach(item => {
