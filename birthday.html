@@ -48,7 +48,7 @@
             border: 12px solid #fbbf24;
         }
 
-        /* Draggable & Resizable items styling */
+        /* Draggable & Resizable items styling with generous padding/sizing to prevent text cutting */
         .draggable-item {
             position: absolute;
             cursor: move;
@@ -56,10 +56,11 @@
             touch-action: none;
             transition: box-shadow 0.2s, border 0.2s;
             resize: both;
-            overflow: hidden;
-            min-width: 50px;
-            min-height: 30px;
+            overflow: visible;
+            min-width: 60px;
+            min-height: 40px;
             box-sizing: border-box;
+            padding: 4px;
         }
         .draggable-item.dragging {
             opacity: 0.9;
@@ -70,6 +71,7 @@
         
         .capturing .draggable-item {
             resize: none !important;
+            overflow: visible !important;
         }
         .capturing .draggable-item::-webkit-resizer {
             display: none !important;
@@ -88,6 +90,7 @@
             align-items: center;
             justify-content: center;
             background: #fff;
+            padding: 0 !important;
         }
         
         .square-photo-img {
@@ -98,12 +101,13 @@
 
         .portal-logo-box, .portal-cake-box {
             z-index: 20; display: flex; align-items: center; justify-content: center;
+            padding: 0 !important;
         }
 
-        .happy-text-group { z-index: 5; color: white; font-size: 58px; font-weight: 900; line-height: 1.1; width: 450px; }
+        .happy-text-group { z-index: 5; color: white; font-size: 58px; font-weight: 900; line-height: 1.1; width: 480px; }
         .script-font { font-family: 'Great Vibes', cursive; color: #fbbf24; font-size: 72px; display: block; margin-top: -10px; line-height: 1; }
         .name-label { font-size: 42px; font-weight: 900; color: #fbbf24; line-height: 1.1; text-shadow: 2px 2px 15px rgba(0,0,0,0.5); width: 100%; }
-        .info-box { z-index: 5; color: white; width: 500px; }
+        .info-box { z-index: 5; color: white; width: 520px; }
         
         .wish-bubble-container {
             background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(15px);
@@ -116,7 +120,7 @@
             text-align: center; resize: none; outline: none; font-size: 18px; line-height: 1.2;
         }
         
-        .date-stamp { color: rgba(255,255,255,0.8); font-size: 15px; font-weight: 800; letter-spacing: 0.5px; z-index: 5; width: 400px; }
+        .date-stamp { color: rgba(255,255,255,0.8); font-size: 15px; font-weight: 800; letter-spacing: 0.5px; z-index: 5; width: 450px; }
         #lockScreen { position: fixed; inset: 0; z-index: 5000; background: #020617; display: flex; align-items: center; justify-content: center; }
         .hidden-portal { display: none !important; }
 
@@ -195,7 +199,7 @@
             </div>
 
             <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-indigo-800 text-sm font-bold text-center mb-8">
-                <i class="fa-solid fa-info-circle mr-2"></i> Tip: Single click any box to drag/reposition. Double click text to edit inline. Use formatting buttons (bold/italic/underline toggles) to style text instantly!
+                <i class="fa-solid fa-info-circle mr-2"></i> Tip: Use number inputs for precise text sizing, toggle bold/italic/underline, adjust image border radius, and enjoy perfect full-bleed card downloads!
             </div>
 
             <div id="cardGrid" class="space-y-32"></div>
@@ -381,22 +385,18 @@
                             </div>
                         </div>
 
-                        <!-- Advanced Text Formatting Toolbar with Toggle Off support -->
+                        <!-- Advanced Text Formatting Toolbar with Numeric Font Size input -->
                         <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
                             <label class="text-[10px] font-black text-slate-400 uppercase block">Text Style Toolbar (Select/Click text)</label>
-                            <div class="flex flex-wrap gap-2">
+                            <div class="flex flex-wrap items-center gap-3">
                                 <button onclick="toggleTextStyle('fontWeight', 'bold', 'normal')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-xs"><i class="fa-solid fa-bold"></i></button>
                                 <button onclick="toggleTextStyle('fontStyle', 'italic', 'normal')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-xs"><i class="fa-solid fa-italic"></i></button>
                                 <button onclick="toggleTextStyle('textDecoration', 'underline', 'none')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-xs"><i class="fa-solid fa-underline"></i></button>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-[10px] font-bold text-slate-400">Size:</span>
+                                    <input type="number" value="32" min="10" max="120" oninput="formatTextStyle('fontSize', this.value + 'px')" class="w-16 border-2 p-1 rounded-lg text-xs font-bold text-center">
+                                </div>
                                 <input type="color" onchange="formatTextStyle('color', this.value)" class="w-8 h-8 rounded cursor-pointer border-0 p-0 ml-auto" title="Text Color">
-                                <select onchange="formatTextStyle('fontSize', this.value + 'px')" class="border rounded-lg px-2 text-xs font-bold">
-                                    <option value="">Size</option>
-                                    <option value="16">16px</option>
-                                    <option value="24">24px</option>
-                                    <option value="32">32px</option>
-                                    <option value="42">42px</option>
-                                    <option value="58">58px</option>
-                                </select>
                             </div>
                         </div>
 
@@ -570,7 +570,6 @@
                     item.releasePointerCapture(e.pointerId);
                 });
 
-                // Double click to focus and edit text inside
                 item.addEventListener('dblclick', (e) => {
                     const editable = item.querySelector('[contenteditable="true"]');
                     if (editable) {
