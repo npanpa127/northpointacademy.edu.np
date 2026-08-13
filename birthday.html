@@ -23,8 +23,9 @@
             overflow: hidden; border-radius: 3.5rem; margin: auto;
             box-shadow: 0 50px 100px -20px rgba(0,0,0,0.4);
             -webkit-print-color-adjust: exact;
-            background-size: cover;
-            background-position: center;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
         }
 
         .student-bg { 
@@ -53,20 +54,20 @@
             cursor: move;
             user-select: none;
             touch-action: none;
-            transition: border 0.2s;
+            transition: box-shadow 0.2s, border 0.2s;
             resize: both;
             overflow: hidden;
             min-width: 50px;
             min-height: 30px;
+            box-sizing: border-box;
         }
         .draggable-item.dragging {
-            opacity: 0.85;
+            opacity: 0.9;
             z-index: 1000 !important;
             box-shadow: 0 15px 30px rgba(0,0,0,0.3);
             border: 2px dashed rgba(251, 191, 36, 0.8);
         }
         
-        /* Hide resize handles on capture/download */
         .capturing .draggable-item {
             resize: none !important;
         }
@@ -79,23 +80,28 @@
             border-radius: 4px;
         }
 
-        .hexagon-container {
-            width: 290px; height: 290px;
+        .square-photo-container {
+            width: 280px; height: 280px;
             z-index: 10;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
         }
         
-        .hexagon-svg {
+        .square-photo-img {
             width: 100%; height: 100%;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
-            cursor: move;
+            object-fit: cover;
+            cursor: pointer;
         }
 
         .portal-logo-box, .portal-cake-box {
             z-index: 20; display: flex; align-items: center; justify-content: center;
         }
 
-        .happy-text-group { z-index: 5; color: white; font-size: 58px; font-weight: 900; line-height: 0.8; width: 450px; }
-        .script-font { font-family: 'Great Vibes', cursive; color: #fbbf24; font-size: 72px; display: block; margin-top: 5px; }
+        .happy-text-group { z-index: 5; color: white; font-size: 58px; font-weight: 900; line-height: 1.1; width: 450px; }
+        .script-font { font-family: 'Great Vibes', cursive; color: #fbbf24; font-size: 72px; display: block; margin-top: -10px; line-height: 1; }
         .name-label { font-size: 42px; font-weight: 900; color: #fbbf24; line-height: 1.1; text-shadow: 2px 2px 15px rgba(0,0,0,0.5); width: 100%; }
         .info-box { z-index: 5; color: white; width: 500px; }
         
@@ -108,28 +114,22 @@
         .wish-text {
             background: transparent; border: none; color: white; width: 100%; height: 100%;
             text-align: center; resize: none; outline: none; font-size: 18px; line-height: 1.2;
-            cursor: move;
         }
         
         .date-stamp { color: rgba(255,255,255,0.8); font-size: 15px; font-weight: 800; letter-spacing: 0.5px; z-index: 5; width: 400px; }
         #lockScreen { position: fixed; inset: 0; z-index: 5000; background: #020617; display: flex; align-items: center; justify-content: center; }
         .hidden-portal { display: none !important; }
 
-        .editable-text {
-            outline: none;
-            pointer-events: auto;
-        }
         .editable-text:hover {
             outline: 1px dashed rgba(251, 191, 36, 0.8);
             background: rgba(255, 255, 255, 0.1);
             border-radius: 6px;
         }
-        .editable-text.editing {
+        .editable-text:focus {
             outline: 2px solid #fbbf24;
             background: rgba(0, 0, 0, 0.2);
             border-radius: 6px;
             padding: 2px 6px;
-            cursor: text;
         }
     </style>
 </head>
@@ -195,7 +195,7 @@
             </div>
 
             <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-indigo-800 text-sm font-bold text-center mb-8">
-                <i class="fa-solid fa-info-circle mr-2"></i> Tip: **Single click & drag** any element anywhere. **Double-click** text fields to edit them or double-click the photo/logo to change images!
+                <i class="fa-solid fa-info-circle mr-2"></i> Tip: Single click any box to drag/reposition. Double click text to edit inline. Use formatting buttons (bold/italic/underline toggles) to style text instantly!
             </div>
 
             <div id="cardGrid" class="space-y-32"></div>
@@ -269,6 +269,13 @@
             generateCards();
         }
 
+        function autoResizeText(el) {
+            el.style.fontSize = '18px';
+            while (el.scrollHeight > el.offsetHeight && parseFloat(el.style.fontSize) > 10) {
+                el.style.fontSize = (parseFloat(el.style.fontSize) - 1) + 'px';
+            }
+        }
+
         function generateCards() {
             const grid = document.getElementById('cardGrid');
             const targetDate = document.getElementById('bsDateInput').value;
@@ -308,6 +315,8 @@
             renderCard(grid, dummyData, 'student', 'Class: 1-Lotus', getTodayBS());
         }
 
+        let activeSelectedBox = null;
+
         function renderCard(container, data, type, meta, dateLabel) {
             const uid = Math.random().toString(36).substr(2, 5);
             const isStaff = type === 'staff';
@@ -318,38 +327,31 @@
             section.innerHTML = `
                 <div id="capture-${uid}" class="card-main ${isStaff ? 'staff-bg' : 'student-bg'}">
                     <div class="draggable-item portal-logo-box" style="top: 25px; left: 35px; width:80px; height:80px;" data-drag>
-                        <img src="logo.jpg" style="width:100%; height:100%; border-radius:50%; border:3px solid white;" ondblclick="triggerFileInput('${uid}')" title="Double-click to change logo">
+                        <img src="logo.jpg" style="width:100%; height:100%; border-radius:50%; border:3px solid white;" onclick="triggerFileInput('${uid}')" title="Click to change logo">
                     </div>
 
-                    <div id="hex-container-${uid}" class="draggable-item hexagon-container" style="top: 70px; right: 15px; width:290px; height:290px;" data-drag>
-                        <svg id="hex-svg-${uid}" class="hexagon-svg" viewBox="0 0 100 100" ondblclick="triggerFileInput('${uid}')" title="Double-click to change photo" style="border: 0px solid #ffffff; box-sizing: border-box;">
-                            <defs>
-                                <clipPath id="hexClip-${uid}">
-                                    <path d="M25 5 L75 5 L100 50 L75 95 L25 95 L0 50 Z" />
-                                </clipPath>
-                            </defs>
-                            <path d="M25 5 L75 5 L100 50 L75 95 L25 95 L0 50 Z" fill="${frameColor}" />
-                            <image id="img-${uid}" x="3" y="3" width="94" height="94" 
-                                clip-path="url(#hexClip-${uid})" preserveAspectRatio="xMidYMid slice" 
-                                href="${data.image || 'https://ui-avatars.com/api/?background=fff&color=6366f1&bold=true&name='+data.name}" />
-                        </svg>
+                    <div id="photo-box-${uid}" class="draggable-item square-photo-container" style="top: 70px; right: 15px; width:280px; height:280px; border: 6px solid ${frameColor}; border-radius: 20px;" data-drag>
+                        <img id="img-${uid}" src="${data.image || 'https://ui-avatars.com/api/?background=fff&color=6366f1&bold=true&name='+data.name}" class="square-photo-img" onclick="triggerFileInput('${uid}')" title="Click to change photo">
                     </div>
 
-                    <div id="happy-group-${uid}" class="draggable-item happy-text-group" style="top: 175px; left: 45px;" data-drag>
-                        <p id="happy-text-${uid}" class="editable-text" style="font-size: 58px;" ondblclick="makeEditable(this)">Happy <span id="script-text-${uid}" class="script-font editable-text" style="font-size: 72px;" ondblclick="makeEditable(this)">Birthday</span></p>
+                    <div class="draggable-item happy-text-group" style="top: 175px; left: 45px;" data-drag>
+                        <p class="editable-text outline-none">
+                            <span contenteditable="true">Happy</span><br>
+                            <span class="script-font" contenteditable="true">Birthday</span>
+                        </p>
                     </div>
                     
-                    <div id="info-group-${uid}" class="draggable-item info-box" style="bottom: 145px; left: 45px;" data-drag>
-                        <div id="name-label-${uid}" class="name-label editable-text" style="font-size: 42px;" ondblclick="makeEditable(this)">${data.gender === 'female' ? 'Miss' : 'Mr'}. ${data.name}</div>
-                        <div id="meta-label-${uid}" class="text-xl font-bold opacity-80 mt-1 uppercase editable-text" style="font-size: 20px;" ondblclick="makeEditable(this)">${meta}</div>
+                    <div class="draggable-item info-box" style="bottom: 145px; left: 45px;" data-drag>
+                        <div class="name-label editable-text outline-none" contenteditable="true">${data.gender === 'female' ? 'Miss' : 'Mr'}. ${data.name}</div>
+                        <div class="text-xl font-bold opacity-80 mt-1 uppercase editable-text outline-none" contenteditable="true">${meta}</div>
                     </div>
                     
                     <div class="draggable-item wish-bubble-container" style="bottom: 65px; left: 25px;" data-drag>
-                        <textarea id="wish-text-${uid}" class="wish-text" style="font-size: 18px;" ondblclick="enableTextarea(this)">Happy Birthday</textarea>
+                        <textarea class="wish-text" oninput="autoResizeText(this)">Happy Birthday</textarea>
                     </div>
                     
                     <div class="draggable-item date-stamp" style="bottom: 20px; left: 35px;" data-drag>
-                        <span id="footer-text-${uid}" class="editable-text" style="font-size: 15px;" ondblclick="makeEditable(this)">North Point Academy || ${dateLabel}</span>
+                        <span contenteditable="true" class="editable-text outline-none">North Point Academy || ${dateLabel}</span>
                     </div>
                 </div>
                 
@@ -359,41 +361,45 @@
                             <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Change Card Photo</label>
                             <input type="file" id="file-${uid}" accept="image/*" onchange="startCrop(event, 'img-${uid}')" class="text-sm block w-full file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:bg-indigo-50 file:text-indigo-700">
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Photo Border Color</label>
-                                <input type="color" value="#ffffff" oninput="updatePhotoBorderColor('${uid}', this.value)" class="w-full h-10 rounded-xl cursor-pointer">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Photo Border Width (px)</label>
-                                <input type="number" value="0" min="0" max="20" oninput="updatePhotoBorderWidth('${uid}', this.value)" class="w-full border-2 p-2 rounded-xl font-bold">
-                            </div>
-                        </div>
-                        <hr class="border-slate-200">
-                        <!-- Text Font Size Controls -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Happy Font Size (px)</label>
-                                <input type="number" value="58" min="20" max="100" oninput="updateTextSize('${uid}', 'happy', this.value)" class="w-full border-2 p-2 rounded-xl font-bold">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Birthday Script Size (px)</label>
-                                <input type="number" value="72" min="20" max="120" oninput="updateTextSize('${uid}', 'script', this.value)" class="w-full border-2 p-2 rounded-xl font-bold">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Name Size (px)</label>
-                                <input type="number" value="42" min="15" max="80" oninput="updateTextSize('${uid}', 'name', this.value)" class="w-full border-2 p-2 rounded-xl font-bold">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Wish Text Size (px)</label>
-                                <input type="number" value="18" min="10" max="40" oninput="updateTextSize('${uid}', 'wish', this.value)" class="w-full border-2 p-2 rounded-xl font-bold">
-                            </div>
-                        </div>
-                        <hr class="border-slate-200">
                         <div>
                             <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Change / Crop Background Image</label>
                             <input type="file" accept="image/*" onchange="startBgCrop(event, 'capture-${uid}')" class="text-sm block w-full file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700">
                         </div>
+                        
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Frame Color</label>
+                                <input type="color" value="${frameColor}" oninput="updateSquareBorderColor('${uid}', this.value)" class="w-full h-9 rounded-xl cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Frame Width</label>
+                                <input type="number" value="6" min="0" max="25" oninput="updateSquareBorderWidth('${uid}', this.value)" class="w-full border-2 p-1.5 rounded-xl font-bold text-sm">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Corner Radius</label>
+                                <input type="number" value="20" min="0" max="140" oninput="updateSquareBorderRadius('${uid}', this.value)" class="w-full border-2 p-1.5 rounded-xl font-bold text-sm">
+                            </div>
+                        </div>
+
+                        <!-- Advanced Text Formatting Toolbar with Toggle Off support -->
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase block">Text Style Toolbar (Select/Click text)</label>
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="toggleTextStyle('fontWeight', 'bold', 'normal')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-xs"><i class="fa-solid fa-bold"></i></button>
+                                <button onclick="toggleTextStyle('fontStyle', 'italic', 'normal')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-xs"><i class="fa-solid fa-italic"></i></button>
+                                <button onclick="toggleTextStyle('textDecoration', 'underline', 'none')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-xs"><i class="fa-solid fa-underline"></i></button>
+                                <input type="color" onchange="formatTextStyle('color', this.value)" class="w-8 h-8 rounded cursor-pointer border-0 p-0 ml-auto" title="Text Color">
+                                <select onchange="formatTextStyle('fontSize', this.value + 'px')" class="border rounded-lg px-2 text-xs font-bold">
+                                    <option value="">Size</option>
+                                    <option value="16">16px</option>
+                                    <option value="24">24px</option>
+                                    <option value="32">32px</option>
+                                    <option value="42">42px</option>
+                                    <option value="58">58px</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="text-[10px] font-black text-slate-400 uppercase block mb-1 ml-1">Card Border Color</label>
@@ -420,6 +426,7 @@
                     </div>
                 </div>`;
             container.appendChild(section);
+            autoResizeText(section.querySelector('.wish-text'));
             initDragAndDrop(section.querySelector(`#capture-${uid}`));
         }
 
@@ -427,23 +434,22 @@
             document.getElementById(`file-${uid}`).click();
         }
 
-        function makeEditable(el) {
-            el.setAttribute('contenteditable', 'true');
-            el.classList.add('editing');
-            el.focus();
-            el.onblur = function() {
-                el.removeAttribute('contenteditable');
-                el.classList.remove('editing');
-            };
+        function updateSquareBorderColor(uid, color) {
+            const box = document.getElementById(`photo-box-${uid}`);
+            box.style.borderColor = color;
         }
 
-        function enableTextarea(el) {
-            el.removeAttribute('readonly');
-            el.style.background = 'rgba(0, 0, 0, 0.3)';
-            el.focus();
-            el.onblur = function() {
-                el.style.background = 'transparent';
-            };
+        function updateSquareBorderWidth(uid, width) {
+            const box = document.getElementById(`photo-box-${uid}`);
+            box.style.borderWidth = width + 'px';
+            box.style.borderStyle = 'solid';
+        }
+
+        function updateSquareBorderRadius(uid, radius) {
+            const box = document.getElementById(`photo-box-${uid}`);
+            box.style.borderRadius = radius + 'px';
+            const img = box.querySelector('img');
+            if(img) img.style.borderRadius = Math.max(0, radius - 4) + 'px';
         }
 
         function updateCardBorderColor(uid, color) {
@@ -457,29 +463,26 @@
             card.style.borderStyle = 'solid';
         }
 
-        function updatePhotoBorderColor(uid, color) {
-            const svg = document.getElementById(`hex-svg-${uid}`);
-            const currentWidth = svg.style.borderWidth || '0px';
-            svg.style.border = `${currentWidth} solid ${color}`;
-            svg.style.borderRadius = '50%';
+        function getActiveEditableElement() {
+            const active = document.activeElement;
+            if (active && (active.classList.contains('editable-text') || active.isContentEditable)) {
+                return active;
+            }
+            return activeSelectedBox || document.querySelector('.editable-text');
         }
 
-        function updatePhotoBorderWidth(uid, width) {
-            const svg = document.getElementById(`hex-svg-${uid}`);
-            const currentColor = svg.style.borderColor || '#ffffff';
-            svg.style.border = `${width}px solid ${currentColor}`;
-            svg.style.borderRadius = '50%';
+        function formatTextStyle(property, value) {
+            const el = getActiveEditableElement();
+            if (el) el.style[property] = value;
         }
 
-        function updateTextSize(uid, type, size) {
-            if(type === 'happy') {
-                document.getElementById(`happy-text-${uid}`).style.fontSize = size + 'px';
-            } else if(type === 'script') {
-                document.getElementById(`script-text-${uid}`).style.fontSize = size + 'px';
-            } else if(type === 'name') {
-                document.getElementById(`name-label-${uid}`).style.fontSize = size + 'px';
-            } else if(type === 'wish') {
-                document.getElementById(`wish-text-${uid}`).style.fontSize = size + 'px';
+        function toggleTextStyle(property, activeVal, defaultVal) {
+            const el = getActiveEditableElement();
+            if (!el) return;
+            if (el.style[property] === activeVal) {
+                el.style[property] = defaultVal;
+            } else {
+                el.style[property] = activeVal;
             }
         }
 
@@ -489,14 +492,13 @@
             shape.className = 'draggable-item';
             shape.style.cssText = 'top: 200px; left: 200px; width: 120px; height: 120px; background: rgba(255, 255, 255, 0.2); border: 3px solid #ffffff; z-index: 2; border-radius: 15px;';
             shape.setAttribute('data-drag', '');
-            
             card.appendChild(shape);
             initDragAndDrop(card);
         }
 
         function deleteCard(btn) {
-            const section = btn.closest('.bg-white.p-12');
-            if(section) section.remove();
+            const section = btn.closest('.flex');
+            section.remove();
         }
 
         let isBgCrop = false;
@@ -517,78 +519,64 @@
             reader.readAsDataURL(file);
         }
 
-        // Global Drag & Drop Handler supporting single-click grab
+        // Improved Drag & Drop (Single click to select/drag, double click to edit)
         function initDragAndDrop(cardMain) {
             const items = cardMain.querySelectorAll('[data-drag]');
             items.forEach(item => {
                 let isDragging = false;
                 let startX, startY, initialLeft, initialTop;
+                let hasMoved = false;
 
-                item.addEventListener('mousedown', (e) => {
-                    if (e.target.isContentEditable || e.target.classList.contains('editing')) return;
-                    startDrag(e.clientX, e.clientY);
-                    e.preventDefault();
-                });
-
-                item.addEventListener('touchstart', (e) => {
-                    if (e.target.isContentEditable || e.target.classList.contains('editing')) return;
-                    if (e.touches.length === 1) {
-                        startDrag(e.touches[0].clientX, e.touches[0].clientY);
-                        e.preventDefault();
-                    }
-                }, { passive: false });
-
-                function startDrag(clientX, clientY) {
+                item.addEventListener('pointerdown', (e) => {
+                    if (e.target.tagName === 'TEXTAREA') return;
+                    
                     isDragging = true;
-                    item.classList.add('dragging');
-                    startX = clientX;
-                    startY = clientY;
+                    hasMoved = false;
+                    startX = e.clientX;
+                    startY = e.clientY;
+
                     initialLeft = item.offsetLeft;
                     initialTop = item.offsetTop;
 
-                    document.addEventListener('mousemove', onMouseMove);
-                    document.addEventListener('mouseup', onMouseUp);
-                    document.addEventListener('touchmove', onTouchMove, { passive: false });
-                    document.addEventListener('touchend', onTouchEnd);
-                }
+                    activeSelectedBox = item;
+                    item.setPointerCapture(e.pointerId);
+                });
 
-                function onMouseMove(e) {
+                item.addEventListener('pointermove', (e) => {
                     if (!isDragging) return;
-                    moveAt(e.clientX, e.clientY);
-                }
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
 
-                function onTouchMove(e) {
-                    if (!isDragging || e.touches.length !== 1) return;
-                    moveAt(e.touches[0].clientX, e.touches[0].clientY);
-                    e.preventDefault();
-                }
+                    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+                        hasMoved = true;
+                        item.classList.add('dragging');
+                    }
 
-                function moveAt(clientX, clientY) {
-                    const dx = clientX - startX;
-                    const dy = clientY - startY;
-                    item.style.left = (initialLeft + dx) + 'px';
-                    item.style.top = (initialTop + dy) + 'px';
-                    item.style.bottom = 'auto';
-                    item.style.right = 'auto';
-                }
+                    if (hasMoved) {
+                        let newLeft = initialLeft + dx;
+                        let newTop = initialTop + dy;
 
-                function onMouseUp() {
-                    stopDrag();
-                }
+                        item.style.left = newLeft + 'px';
+                        item.style.top = newTop + 'px';
+                        item.style.bottom = 'auto';
+                        item.style.right = 'auto';
+                    }
+                });
 
-                function onTouchEnd() {
-                    stopDrag();
-                }
-
-                function stopDrag() {
+                item.addEventListener('pointerup', (e) => {
                     if (!isDragging) return;
                     isDragging = false;
                     item.classList.remove('dragging');
-                    document.removeEventListener('mousemove', onMouseMove);
-                    document.removeEventListener('mouseup', onMouseUp);
-                    document.removeEventListener('touchmove', onTouchMove);
-                    document.removeEventListener('touchend', onTouchEnd);
-                }
+                    item.releasePointerCapture(e.pointerId);
+                });
+
+                // Double click to focus and edit text inside
+                item.addEventListener('dblclick', (e) => {
+                    const editable = item.querySelector('[contenteditable="true"]');
+                    if (editable) {
+                        editable.focus();
+                    }
+                });
             });
         }
 
@@ -612,9 +600,11 @@
             if (isBgCrop) {
                 const card = document.getElementById(targetCardBgId);
                 card.style.backgroundImage = `url('${croppedData}')`;
+                card.style.backgroundSize = 'cover';
+                card.style.backgroundPosition = 'center';
                 card.style.backgroundColor = 'transparent';
             } else {
-                document.getElementById(activeImgId).setAttribute('href', croppedData);
+                document.getElementById(activeImgId).src = croppedData;
             }
             closeCrop();
         }
