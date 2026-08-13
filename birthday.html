@@ -48,22 +48,24 @@
             border: 12px solid #fbbf24;
         }
 
-        /* Draggable & Resizable items styling with fully expandable bounds to prevent text clipping */
+        /* Perfectly smooth draggable & resizable items */
         .draggable-item {
             position: absolute;
-            cursor: move;
+            cursor: grab;
             user-select: none;
             touch-action: none;
-            transition: box-shadow 0.2s, border 0.2s;
             resize: both;
             overflow: visible !important;
-            min-width: 80px;
-            min-height: 50px;
+            min-width: 60px;
+            min-height: 30px;
             box-sizing: border-box;
-            padding: 8px;
+            padding: 6px;
+        }
+        .draggable-item:active {
+            cursor: grabbing;
         }
         .draggable-item.dragging {
-            opacity: 0.9;
+            opacity: 0.95;
             z-index: 1000 !important;
             box-shadow: 0 15px 30px rgba(0,0,0,0.3);
             border: 2px dashed rgba(251, 191, 36, 0.8);
@@ -99,33 +101,16 @@
             cursor: pointer;
         }
 
-        .portal-logo-box, .portal-cake-box {
+        .portal-logo-box {
             z-index: 20; display: flex; align-items: center; justify-content: center;
             padding: 0 !important;
         }
 
-        .happy-text-group { z-index: 5; color: white; width: 480px; }
-        .happy-main { font-size: 58px; font-weight: 900; line-height: 1.1; display: block; white-space: nowrap; }
-        .script-font { font-family: 'Great Vibes', cursive; color: #fbbf24; font-size: 72px; display: block; margin-top: -5px; line-height: 1; white-space: nowrap; }
-        
-        .name-label { font-size: 42px; font-weight: 900; color: #fbbf24; line-height: 1.1; text-shadow: 2px 2px 15px rgba(0,0,0,0.5); width: 100%; }
-        .info-box { z-index: 5; color: white; width: 520px; }
-        
-        .wish-bubble-container {
-            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(15px);
-            border-radius: 25px; padding: 15px 25px; text-align: center; color: white; 
-            border: 1px solid rgba(255,255,255,0.3); width: 550px; height: 80px;
-            display: flex; align-items: center; justify-content: center;
+        .editable-text {
+            display: inline-block;
+            outline: none;
+            cursor: text;
         }
-        .wish-text {
-            background: transparent; border: none; color: white; width: 100%; height: 100%;
-            text-align: center; resize: none; outline: none; font-size: 18px; line-height: 1.2;
-        }
-        
-        .date-stamp { color: rgba(255,255,255,0.8); font-size: 15px; font-weight: 800; letter-spacing: 0.5px; z-index: 5; width: 480px; white-space: nowrap; }
-        #lockScreen { position: fixed; inset: 0; z-index: 5000; background: #020617; display: flex; align-items: center; justify-content: center; }
-        .hidden-portal { display: none !important; }
-
         .editable-text:hover {
             outline: 1px dashed rgba(251, 191, 36, 0.8);
             background: rgba(255, 255, 255, 0.1);
@@ -137,6 +122,20 @@
             border-radius: 6px;
             padding: 2px 6px;
         }
+
+        .wish-bubble-container {
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(15px);
+            border-radius: 25px; padding: 15px 25px; text-align: center; color: white; 
+            border: 1px solid rgba(255,255,255,0.3); width: 550px; height: 80px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .wish-text {
+            background: transparent; border: none; color: white; width: 100%; height: 100%;
+            text-align: center; resize: none; outline: none; font-size: 18px; line-height: 1.2;
+        }
+
+        #lockScreen { position: fixed; inset: 0; z-index: 5000; background: #020617; display: flex; align-items: center; justify-content: center; }
+        .hidden-portal { display: none !important; }
     </style>
 </head>
 <body>
@@ -201,7 +200,7 @@
             </div>
 
             <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl text-indigo-800 text-sm font-bold text-center mb-8">
-                <i class="fa-solid fa-info-circle mr-2"></i> Fully optimized: Text auto-shrinks if it exceeds box width, border radius is now adjustable via range slider, and all clipping/download layout issues are fully resolved.
+                <i class="fa-solid fa-info-circle mr-2"></i> Fully fixed: Smooth drag & drop on any element, click anywhere inside a text box to edit independently, and toolbar controls target your currently active/focused text item precisely!
             </div>
 
             <div id="cardGrid" class="space-y-32"></div>
@@ -282,7 +281,6 @@
             }
         }
 
-        // Auto-shrink text if it overflows container width
         function fitTextToContainer(el) {
             if (!el) return;
             let currentSize = parseFloat(window.getComputedStyle(el).fontSize) || 32;
@@ -331,8 +329,6 @@
             renderCard(grid, dummyData, 'student', 'Class: 1-Lotus', getTodayBS());
         }
 
-        let activeSelectedBox = null;
-
         function renderCard(container, data, type, meta, dateLabel) {
             const uid = Math.random().toString(36).substr(2, 5);
             const isStaff = type === 'staff';
@@ -350,24 +346,26 @@
                         <img id="img-${uid}" src="${data.image || 'https://ui-avatars.com/api/?background=fff&color=6366f1&bold=true&name='+data.name}" class="square-photo-img" onclick="triggerFileInput('${uid}')" title="Click to change photo">
                     </div>
 
-                    <div class="draggable-item happy-text-group" style="top: 175px; left: 45px;" data-drag>
-                        <div class="editable-text outline-none" style="display:inline-block;">
-                            <span class="happy-main" contenteditable="true" oninput="fitTextToContainer(this)">Happy</span>
-                            <span class="script-font" contenteditable="true" oninput="fitTextToContainer(this)">Birthday</span>
+                    <div class="draggable-item" style="top: 175px; left: 45px; width:450px; height:130px;" data-drag>
+                        <div style="font-size:58px; font-weight:900; line-height:1.1; color:white;">
+                            <span id="txt-happy-${uid}" class="editable-text" contenteditable="true" style="display:inline-block;" oninput="fitTextToContainer(this)">Happy</span><br>
+                            <span id="txt-bday-${uid}" class="editable-text" contenteditable="true" style="font-family:'Great Vibes',cursive; color:#fbbf24; font-size:72px; display:inline-block; line-height:1;" oninput="fitTextToContainer(this)">Birthday</span>
                         </div>
                     </div>
                     
-                    <div class="draggable-item info-box" style="bottom: 145px; left: 45px;" data-drag>
-                        <div class="name-label editable-text outline-none" contenteditable="true" oninput="fitTextToContainer(this)">${data.gender === 'female' ? 'Miss' : 'Mr'}. ${data.name}</div>
-                        <div class="text-xl font-bold opacity-80 mt-1 uppercase editable-text outline-none" contenteditable="true" oninput="fitTextToContainer(this)">${meta}</div>
+                    <div class="draggable-item" style="bottom: 120px; left: 45px; width:500px; height:120px;" data-drag>
+                        <div>
+                            <div id="txt-name-${uid}" class="editable-text name-label" contenteditable="true" style="font-size:42px; font-weight:900; color:#fbbf24; line-height:1.1; text-shadow:2px 2px 15px rgba(0,0,0,0.5); display:block;" oninput="fitTextToContainer(this)">${data.gender === 'female' ? 'Miss' : 'Mr'}. ${data.name}</div>
+                            <div id="txt-meta-${uid}" class="editable-text" contenteditable="true" style="font-size:20px; font-weight:700; color:white; opacity:0.9; margin-top:4px; text-transform:uppercase; display:block;" oninput="fitTextToContainer(this)">${meta}</div>
+                        </div>
                     </div>
                     
-                    <div class="draggable-item wish-bubble-container" style="bottom: 65px; left: 25px;" data-drag>
+                    <div class="draggable-item wish-bubble-container" style="bottom: 65px; left: 25px; width:550px; height:80px;" data-drag>
                         <textarea class="wish-text" oninput="autoResizeText(this)">Happy Birthday</textarea>
                     </div>
                     
-                    <div class="draggable-item date-stamp" style="bottom: 20px; left: 35px;" data-drag>
-                        <span class="editable-text outline-none" contenteditable="true" oninput="fitTextToContainer(this)">North Point Academy || ${dateLabel}</span>
+                    <div class="draggable-item" style="bottom: 20px; left: 35px; width:450px; height:40px;" data-drag>
+                        <span id="txt-date-${uid}" class="editable-text" contenteditable="true" style="color:rgba(255,255,255,0.8); font-size:15px; font-weight:800; letter-spacing:0.5px; display:inline-block;" oninput="fitTextToContainer(this)">North Point Academy || ${dateLabel}</span>
                     </div>
                 </div>
                 
@@ -397,16 +395,16 @@
                             </div>
                         </div>
 
-                        <!-- Advanced Text Formatting Toolbar with numeric font size input -->
+                        <!-- Advanced Text Formatting Toolbar targeting focused text element -->
                         <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
-                            <label class="text-[10px] font-black text-slate-400 uppercase block">Text Style Toolbar (Select/Click text)</label>
+                            <label class="text-[10px] font-black text-slate-400 uppercase block">Text Style Toolbar (Click inside any text to style)</label>
                             <div class="flex flex-wrap items-center gap-3">
                                 <button onclick="toggleTextStyle('fontWeight', 'bold', 'normal')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-xs"><i class="fa-solid fa-bold"></i></button>
                                 <button onclick="toggleTextStyle('fontStyle', 'italic', 'normal')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-xs"><i class="fa-solid fa-italic"></i></button>
                                 <button onclick="toggleTextStyle('textDecoration', 'underline', 'none')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-bold text-xs"><i class="fa-solid fa-underline"></i></button>
                                 <div class="flex items-center gap-1">
                                     <span class="text-[10px] font-bold text-slate-400">Size:</span>
-                                    <input type="number" value="32" min="10" max="120" oninput="formatTextStyle('fontSize', this.value + 'px')" class="w-16 border-2 p-1 rounded-lg text-xs font-bold text-center">
+                                    <input type="number" id="fontSizeInput-${uid}" value="32" min="10" max="120" oninput="formatTextStyle('fontSize', this.value + 'px')" class="w-16 border-2 p-1 rounded-lg text-xs font-bold text-center">
                                 </div>
                                 <input type="color" onchange="formatTextStyle('color', this.value)" class="w-8 h-8 rounded cursor-pointer border-0 p-0 ml-auto" title="Text Color">
                             </div>
@@ -477,10 +475,10 @@
 
         function getActiveEditableElement() {
             const active = document.activeElement;
-            if (active && (active.classList.contains('editable-text') || active.isContentEditable)) {
+            if (active && active.classList.contains('editable-text')) {
                 return active;
             }
-            return activeSelectedBox || document.querySelector('.editable-text');
+            return null;
         }
 
         function formatTextStyle(property, value) {
@@ -531,6 +529,7 @@
             reader.readAsDataURL(file);
         }
 
+        // Flawless pointer-based drag & drop without conflict with text editing
         function initDragAndDrop(cardMain) {
             const items = cardMain.querySelectorAll('[data-drag]');
             items.forEach(item => {
@@ -539,7 +538,10 @@
                 let hasMoved = false;
 
                 item.addEventListener('pointerdown', (e) => {
-                    if (e.target.tagName === 'TEXTAREA') return;
+                    // If clicking inside a textarea or an active editable text span, don't trigger drag
+                    if (e.target.tagName === 'TEXTAREA' || e.target.classList.contains('editable-text')) {
+                        return;
+                    }
                     
                     isDragging = true;
                     hasMoved = false;
@@ -549,7 +551,6 @@
                     initialLeft = item.offsetLeft;
                     initialTop = item.offsetTop;
 
-                    activeSelectedBox = item;
                     item.setPointerCapture(e.pointerId);
                 });
 
@@ -579,13 +580,6 @@
                     isDragging = false;
                     item.classList.remove('dragging');
                     item.releasePointerCapture(e.pointerId);
-                });
-
-                item.addEventListener('dblclick', (e) => {
-                    const editable = item.querySelector('[contenteditable="true"]');
-                    if (editable) {
-                        editable.focus();
-                    }
                 });
             });
         }
